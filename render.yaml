@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: cp32-online-relay
+    runtime: node
+    plan: free
+    buildCommand: node --check server/online-relay/server.js && node --check server/online-relay/battle-kernel.js
+    startCommand: node server/online-relay/server.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: CP32_GAME_HTML
+        value: upload/index(20260815-111049)(1).html
+      - key: CP32_RECONNECT_GRACE_MS
+        value: "86400000"
