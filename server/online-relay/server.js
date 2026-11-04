@@ -37,7 +37,8 @@ const now = () => Date.now();
 const randomId = prefix => `${prefix}-${crypto.randomBytes(16).toString("hex")}`;
 const roomKey = (mode, roomCode) => `${mode}:${String(roomCode || "").toUpperCase()}`;
 const cleanText = (value, max = 160) => String(value == null ? "" : value).trim().slice(0, max);
-const validMode = value => ["PVP", "BOSS_COOP"].includes(value) ? value : null;
+// MANRU_DUEL: the 1:1 ghost battle of the game 만루. The relay only matches two players and passes their payloads; it computes nothing for it.
+const validMode = value => ["PVP", "BOSS_COOP", "MANRU_DUEL"].includes(value) ? value : null;
 const validLeague = value => ["two", "regular", "comprehensive", "mega"].includes(String(value || "")) ? String(value) : null;
 const validComposition = value => ["2234", "2335"].includes(String(value || "")) ? String(value) : null;
 const isObject = value => value && typeof value === "object" && !Array.isArray(value);
@@ -626,7 +627,7 @@ function attachSessionClient(session, role, client, resumed = false, resumeMessa
 
 function commitSession({ mode, kind, roomCode = null, host, guest, hostQueueEntryId = null, guestQueueEntryId = null, matchId: committedMatchId = null, authorityLeague = null }) {
   const token = randomId("session");
-  const matchId = committedMatchId || randomId(mode === "BOSS_COOP" ? "boss-match" : kind === "room" ? "room-match" : "match");
+  const matchId = committedMatchId || randomId(mode === "BOSS_COOP" ? "boss-match" : mode === "MANRU_DUEL" ? "duel-match" : kind === "room" ? "room-match" : "match");
   const session = {
     token, mode, kind, roomCode, matchId,
     createdAt: now(), committedAt: now(), expiresAt: 0, messageSequence: 0,
@@ -771,7 +772,7 @@ function tryMatch(queueKey) {
     queue.splice(secondIndex, 1); queue.splice(firstIndex, 1);
     const ordered = [first, second].sort((a, b) => a.playerId.localeCompare(b.playerId) || a.queueEntryId.localeCompare(b.queueEntryId));
     const mode = first.mode;
-    const matchId = randomId(mode === "BOSS_COOP" ? "boss-match" : "match");
+    const matchId = randomId(mode === "BOSS_COOP" ? "boss-match" : mode === "MANRU_DUEL" ? "duel-match" : "match");
     const match = {
       matchId, mode, queueKey, league:first.league || null,
       host: { ...ordered[0], mode }, guest: { ...ordered[1], mode },
